@@ -45,13 +45,15 @@ class BattleNode(object):
 
     @victim.setter
     def victim(self, val):
-        self._victim_addr = tuple(val)
+        self._victim_addr = val
         self._victim = ServerProxy('http://{}:{}'.format(*val))
 
     def attack(self, pos=None):
         if pos is None:
             pos = random_pair()
-        self.victim = self._victim.defend(pos)
+        new_victim = tuple(self._victim.defend(pos))
+        if new_victim != self.victim:
+            self.victim = new_victim
 
     def defend(self, pos):
         if tuple(pos) == self.position:
@@ -60,9 +62,9 @@ class BattleNode(object):
 
     def insert(self, addr):
         old_victim = self._victim_addr
-        self.victim = addr
+        self.victim = tuple(addr)
         return old_victim
 
     def join(self, addr):
         attacker = ServerProxy('http://{}:{}'.format(*addr))
-        self.victim = attacker.insert(self.addr)
+        self.victim = tuple(attacker.insert(self.addr))
