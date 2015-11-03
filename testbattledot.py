@@ -39,3 +39,17 @@ class TestBattleNode(TestCase):
         a.stop()
         b.stop()
         c.stop()
+
+    def test_drop_node(self):
+        a = BattleNode(('localhost', 9908))
+        b = BattleNode(('localhost', 9909))
+        c = BattleNode(('localhost', 9910))
+        a.victim = b.addr
+        b.victim = c.addr
+        c.victim = a.addr
+        time.sleep(1)
+        b.stop()
+        time.sleep(1)
+        self.assertEqual(a.victim, c.addr)
+        a.stop()
+        c.stop()
