@@ -1,3 +1,4 @@
+import time
 from unittest import TestCase
 from battledot import BattleNode
 
@@ -10,6 +11,8 @@ class TestBattleNode(TestCase):
         b.victim = a.addr
         self.assertEqual(a.victim, b.addr)
         self.assertEqual(b.victim, a.addr)
+        a.stop()
+        b.stop()
 
     def test_defend(self):
         a = BattleNode(('localhost', 9902))
@@ -20,6 +23,9 @@ class TestBattleNode(TestCase):
         c.victim = a.addr
         a.attack(b.position)
         self.assertEqual(a.victim, c.addr)
+        a.stop()
+        b.stop()
+        c.stop()
 
     def test_insert(self):
         a = BattleNode(('localhost', 9905))
@@ -30,3 +36,6 @@ class TestBattleNode(TestCase):
         c.join(a.addr)
         self.assertEqual(a.victim, c.addr)
         self.assertEqual(c.victim, b.addr)
+        a.stop()
+        b.stop()
+        c.stop()

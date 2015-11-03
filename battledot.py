@@ -1,6 +1,6 @@
 import random
 import socket
-from threading import Thread
+from threading import Thread, Lock
 from SimpleXMLRPCServer import SimpleXMLRPCServer as RPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler as RPCHandler
 from xmlrpclib import ServerProxy, Error
@@ -23,10 +23,11 @@ class BattleNode(object):
         self.position = random_pair()
         self._victim = None
         self._victim_addr = None
+        self._victim_lock = Lock()
         self.server = RPCServer(addr,requestHandler=RPCHandler)
-        self.server_thread = Thread(target=self.server.serve_forever)
         self.server.register_function(self.defend, 'defend')
         self.server.register_function(self.insert, 'insert')
+        self.server_thread = Thread(target=self.server.serve_forever)
         self.server_thread.start()
 
     def __eq__(self, other):
@@ -35,8 +36,9 @@ class BattleNode(object):
     def __ne__(self, other):
         return self.addr != other.addr
 
-    def __del__(self):
+    def stop(self):
         self.server.shutdown()
+        self.server.server_close()
         self.server_thread.join()
 
     @property
@@ -51,9 +53,10 @@ class BattleNode(object):
     def attack(self, pos=None):
         if pos is None:
             pos = random_pair()
-        new_victim = tuple(self._victim.defend(pos))
-        if new_victim != self.victim:
-            self.victim = new_victim
+        with self._victim_lock:
+            new_victim = tuple(self._victim.defend(pos))
+            if new_victim != self.victim:
+                self.victim = new_victim
 
     def defend(self, pos):
         if tuple(pos) == self.position:
@@ -61,10 +64,12 @@ class BattleNode(object):
         return self.addr
 
     def insert(self, addr):
-        old_victim = self._victim_addr
-        self.victim = tuple(addr)
-        return old_victim
+        with self._victim_lock:
+            old_victim = self._victim_addr
+            self.victim = tuple(addr)
+            return old_victim
 
     def join(self, addr):
         attacker = ServerProxy('http://{}:{}'.format(*addr))
-        self.victim = tuple(attacker.insert(self.addr))
+        with self._victim_lock:
+            self.victim = tuple(attacker.insert(self.addr))
