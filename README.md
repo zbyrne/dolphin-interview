@@ -1,5 +1,11 @@
 # dolphin-interview
 
+## Running The Code ##
+
+To try the unit tests, run nosetests testbattledot.py
+
+To run the program on its own, run python battledot.py in several terminals.
+
 ### Problem 2
 
 Although Puppet and Ansible try to accomplish the same task, there are
