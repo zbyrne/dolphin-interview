@@ -1,3 +1,4 @@
+import sys
 import random
 import socket
 import time
@@ -73,6 +74,8 @@ class BattleNode(object):
             new_victim = tuple(self._victim.defend(pos))
             if new_victim != self.victim:
                 self.victim = new_victim
+                return True
+        return False
 
     def defend(self, pos):
         if tuple(pos) == self.position:
@@ -112,3 +115,69 @@ class BattleNode(object):
             time.sleep(0.1)
             with self._victim_lock:
                 self.ping_victim()
+
+
+def prompt_for_host_addr():
+    while True:
+        inp = raw_input("Please enter the <host>:<port> ")
+        try:
+            host, addr = inp.split(":")
+            addr = int(addr)
+        except:
+            print "Bad format."
+            continue
+        return host, addr
+
+
+MENU_STRING = \
+"""
+1: Specify Victim
+2: Insert After Player
+3: Attack Victim
+4: Quit
+Action: 
+"""
+
+
+def main():
+    addr = prompt_for_host_addr()
+    node = BattleNode(addr)
+    while True:
+        inp = raw_input(MENU_STRING)
+        if node.lost.is_set():
+            print "Sorry, you lost."
+            node.stop()
+            break
+        try:
+            choice = int(inp)
+        except TypeError:
+            print "Bad format."
+            continue
+        if choice not in range(1, 5):
+            print "Invalid choice."
+            continue
+        if choice == 1:
+            print "Specify Victim."
+            addr = prompt_for_host_addr()
+            node.victim = addr
+        elif choice == 2:
+            print "Insert After Player."
+            addr = prompt_for_host_addr()
+            node.join(addr)
+        elif choice == 3:
+            print "Attack Victim."
+            if node.attack():
+                print "You got him!"
+            else:
+                print "You missed."
+        elif choice == 4:
+            print "Good bye!"
+            node.stop()
+            break
+        if node.addr == node.victim:
+            print "You're the only player left in this ring. You Won!"
+            break
+
+
+if __name__ == '__main__':
+    sys.exit(main())
