@@ -23,6 +23,7 @@ class TestBattleNode(TestCase):
         c.victim = a.addr
         a.attack(b.position)
         self.assertEqual(a.victim, c.addr)
+        self.assertTrue(b.lost.is_set())
         a.stop()
         b.stop()
         c.stop()

@@ -30,6 +30,7 @@ class BattleNode(object):
         self._victim = None
         self._victim_addr = None
         self._victim_lock = Lock()
+        self.lost = Event()
         self.server = RPCServer(addr,requestHandler=SilentRPCHandler)
         self.server.register_function(self.defend, 'defend')
         self.server.register_function(self.insert, 'insert')
@@ -75,6 +76,7 @@ class BattleNode(object):
 
     def defend(self, pos):
         if tuple(pos) == self.position:
+            self.lost.set()
             return self._victim_addr
         return self.addr
 
